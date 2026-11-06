@@ -17,21 +17,65 @@
         }
     </script>
     <style>
-        .custom-scrollbar::-webkit-scrollbar{width:5px;height:5px}
-        .custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9}
-        .custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8}
-        @media print{
-            body *{visibility:hidden}
-            #printable-qr-area,#printable-qr-area *{visibility:visible}
-            #printable-qr-area{position:absolute;left:0;top:0;width:100%;display:flex;justify-content:center;align-items:center}
-        }
-    </style>
-</head>
-<body class="h-full font-sans text-slate-800 antialiased flex flex-col md:flex-row bg-slate-100">
+    .custom-scrollbar::-webkit-scrollbar{width:5px;height:5px}
+    .custom-scrollbar::-webkit-scrollbar-track{background:#f1f5f9}
+    .custom-scrollbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover{background:#94a3b8}
 
-<!-- ══════════════════ SIDEBAR ══════════════════ -->
-<aside class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 z-20 md:h-full">
+    /* ── RESPONSIVO MOBILE ── */
+    .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    #mobile-menu-overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(15,23,42,0.7);
+        backdrop-filter: blur(4px);
+        z-index: 40;
+    }
+    #mobile-menu-overlay.open { display: block; }
+
+    #mobile-sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 280px;
+        background: #0f172a;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+        display: flex; flex-direction: column;
+        overflow-y: auto;
+    }
+    #mobile-sidebar.open { transform: translateX(0); }
+
+    #mobile-bottom-nav {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: #0f172a;
+        border-top: 1px solid #1e293b;
+        display: flex;
+        z-index: 30;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    @media (min-width: 768px) {
+        #mobile-bottom-nav   { display: none !important; }
+        #mobile-sidebar      { display: none !important; }
+        #mobile-menu-overlay { display: none !important; }
+    }
+
+    @media print{
+        body *{visibility:hidden}
+        #printable-qr-area,#printable-qr-area *{visibility:visible}
+        #printable-qr-area{position:absolute;left:0;top:0;width:100%;display:flex;justify-content:center;align-items:center}
+    }
+</style>
+
+</head>
+<body class="font-sans text-slate-800 antialiased bg-slate-100 md:flex md:flex-row md:h-screen overflow-hidden">
+
+<!-- ══════════════════ SIDEBAR (desktop) ══════════════════ -->
+<aside class="hidden md:flex md:w-64 bg-slate-900 text-slate-300 flex-col flex-shrink-0 z-20 h-full">
+
 
     <!-- Logo -->
     <div class="p-5 flex items-center gap-3 border-b border-slate-800">
@@ -127,13 +171,124 @@
         </div>
     </div>
 </aside>
+<!-- ══════════ OVERLAY MOBILE ══════════ -->
+<div id="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
+
+<!-- ══════════ SIDEBAR DRAWER MOBILE ══════════ -->
+<div id="mobile-sidebar">
+    <!-- Logo -->
+    <div class="p-5 flex items-center gap-3 border-b border-slate-800">
+        <div class="p-2 bg-brand-600 rounded-xl text-white flex-shrink-0">
+            <i class="fa-solid fa-boxes-stacked text-xl"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h1 data-app-name class="font-bold text-white text-base leading-tight truncate">StockMaster Pro</h1>
+            <span class="text-[10px] text-brand-500 font-medium">Manutenção Industrial</span>
+        </div>
+        <button onclick="closeMobileMenu()" class="text-slate-500 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- Operador -->
+    <div class="px-4 py-3 border-b border-slate-800">
+        <button id="mob-operator-badge" onclick="openOperatorModal(); closeMobileMenu();"
+            class="text-xs text-slate-400 hover:text-white w-full text-left flex items-center gap-2 transition">
+            <i class="fa-solid fa-user-circle text-slate-600"></i>
+            <span>Identificar-se</span>
+        </button>
+    </div>
+
+    <!-- Nav links -->
+    <nav class="p-4 space-y-1 flex-1">
+        <p class="px-3 text-[10px] font-bold text-slate-600 uppercase tracking-widest mb-3">Menu</p>
+        <button onclick="switchTab('dashboard');  closeMobileMenu()"
+            class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-chart-pie w-6 mr-2.5"></i> Dashboard
+        </button>
+        <button onclick="switchTab('inventory');  closeMobileMenu()"
+            class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-warehouse w-6 mr-2.5"></i> Estoque
+        </button>
+        <button onclick="switchTab('movements');  closeMobileMenu()"
+            class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-amber-400 hover:bg-slate-800 hover:text-white transition">
+            <i class="fa-solid fa-arrows-up-down w-6 mr-2.5"></i> Movimentações
+        </button>
+        <button onclick="switchTab('restock');    closeMobileMenu()"
+            class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-cart-shopping w-6 mr-2.5"></i> Reposição
+        </button>
+        <button onclick="switchTab('financial');  closeMobileMenu()"
+            class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-file-invoice-dollar w-6 mr-2.5"></i> Financeiro
+        </button>
+        <button onclick="switchTab('history');    closeMobileMenu()"
+            class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-clock-rotate-left w-6 mr-2.5"></i> Histórico & OS
+        </button>
+
+        <p class="px-3 text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-4 mb-2">Ferramentas</p>
+        <button onclick="openScannerModal(); closeMobileMenu()"
+            class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-emerald-400 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-qrcode w-6 mr-2.5"></i> Scanner QR
+        </button>
+        <button onclick="openCategoryModal(); closeMobileMenu()"
+            class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-tags w-6 mr-2.5"></i> Categorias
+        </button>
+        <button onclick="openItemModal(); closeMobileMenu()"
+            class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl bg-brand-600 text-white hover:bg-brand-700 transition mt-2">
+            <i class="fa-solid fa-plus w-6 mr-2.5"></i> Nova Peça
+        </button>
+    </nav>
+</div>
+
+<!-- ══════════ BARRA INFERIOR MOBILE ══════════ -->
+<nav id="mobile-bottom-nav">
+    <button onclick="switchTab('dashboard')"
+        class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2.5 gap-1 text-slate-400 hover:text-white transition"
+        id="mob-nav-dashboard">
+        <i class="fa-solid fa-chart-pie text-lg"></i>
+        <span class="text-[9px] font-semibold">Dashboard</span>
+    </button>
+    <button onclick="switchTab('inventory')"
+        class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2.5 gap-1 text-slate-400 hover:text-white transition"
+        id="mob-nav-inventory">
+        <i class="fa-solid fa-warehouse text-lg"></i>
+        <span class="text-[9px] font-semibold">Estoque</span>
+    </button>
+    <button onclick="switchTab('movements')"
+        class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2.5 gap-1 text-amber-400 hover:text-white transition"
+        id="mob-nav-movements">
+        <i class="fa-solid fa-arrows-up-down text-xl"></i>
+        <span class="text-[9px] font-semibold">Moviment.</span>
+    </button>
+    <button onclick="switchTab('history')"
+        class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2.5 gap-1 text-slate-400 hover:text-white transition"
+        id="mob-nav-history">
+        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+        <span class="text-[9px] font-semibold">Histórico</span>
+    </button>
+    <button onclick="toggleMobileMenu()"
+        class="flex-1 flex flex-col items-center justify-center py-2.5 gap-1 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-bars text-lg"></i>
+        <span class="text-[9px] font-semibold">Menu</span>
+    </button>
+</nav>
+
 
 <!-- ══════════════════ MAIN ══════════════════ -->
-<main class="flex-1 flex flex-col overflow-hidden md:h-full">
+<main class="flex-1 flex flex-col overflow-hidden h-screen md:h-full">
+
 
     <!-- Header -->
-    <header class="bg-white border-b border-slate-200 px-5 py-3.5 flex items-center justify-between gap-3 shadow-sm flex-shrink-0">
-        <h2 id="page-title" class="text-xl font-bold text-slate-800 truncate">Dashboard & Indicadores</h2>
+    <header class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-3 shadow-sm flex-shrink-0">
+    <!-- Botão hamburguer (só mobile) -->
+    <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex-shrink-0">
+        <i class="fa-solid fa-bars text-lg"></i>
+    </button>
+    <h2 id="page-title" class="text-base md:text-xl font-bold text-slate-800 truncate flex-1">Dashboard & Indicadores</h2>
+
         <div class="flex items-center gap-2 flex-shrink-0">
             <!-- Desfazer -->
             <button id="undo-btn" onclick="undoLastAction()" title="Desfazer última movimentação"
@@ -179,7 +334,8 @@
     </header>
 
     <!-- Content -->
-    <div class="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar bg-slate-100">
+    <div class="flex-1 overflow-y-auto p-3 md:p-5 space-y-4 md:space-y-5 custom-scrollbar bg-slate-100 pb-24 md:pb-5">
+
 
         <!-- ═══ TAB: DASHBOARD ═══ -->
         <section id="tab-dashboard" class="space-y-5">

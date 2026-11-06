@@ -89,6 +89,7 @@ function switchTab(tabName) {
   if (tabName === 'dashboard') renderDashboardCharts();
   if (tabName === 'restock')   renderRestockTable();
   if (tabName === 'history')   renderHistoryTable();
+  updateMobileBottomNav(tabName); 
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1386,6 +1387,41 @@ function showToast(msg, type='success') {
     toast.style.transform = 'translateY(1rem)';
   }, 3500);
 }
+// ══════════════════════════════════════════════════════════════
+//  MENU MOBILE
+// ══════════════════════════════════════════════════════════════
+function toggleMobileMenu() {
+    document.getElementById('mobile-sidebar').classList.toggle('open');
+    document.getElementById('mobile-menu-overlay').classList.toggle('open');
+}
+
+function closeMobileMenu() {
+    document.getElementById('mobile-sidebar').classList.remove('open');
+    document.getElementById('mobile-menu-overlay').classList.remove('open');
+}
+
+// Destaca botão ativo na barra inferior
+function updateMobileBottomNav(tabName) {
+    const map = {
+        dashboard: 'mob-nav-dashboard',
+        inventory: 'mob-nav-inventory',
+        movements: 'mob-nav-movements',
+        history:   'mob-nav-history'
+    };
+    document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+        btn.classList.remove('text-brand-400','text-amber-400','text-white');
+        btn.classList.add('text-slate-400');
+    });
+    const activeId = map[tabName];
+    if (activeId) {
+        const btn = document.getElementById(activeId);
+        if (btn) {
+            btn.classList.remove('text-slate-400');
+            btn.classList.add(tabName === 'movements' ? 'text-amber-400' : 'text-brand-400');
+        }
+    }
+}
+
 // ══════════════════════════════════════════════════════════════
 //  ABA MOVIMENTAÇÕES — Busca rápida + Baixa + Entrada
 // ══════════════════════════════════════════════════════════════
